@@ -6,6 +6,12 @@ interface EntityManager
 {
 
     /**
+     * Ссылка на объект менеджера сущностей
+     * @return EntityManager
+     */
+    public static function getInstance(): EntityManager;
+
+    /**
      * Найти сущность по идентификатору или по критериям
      * @param string $entityClass
      * @param $condition
