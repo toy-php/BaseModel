@@ -34,6 +34,19 @@ interface Collection extends \ArrayAccess, \IteratorAggregate, \Countable
     public function withoutEntity(Entity $entity) : Collection;
 
     /**
+     * Получить коллекцию с мета-данными
+     * @param MetaData $metaData
+     * @return Collection
+     */
+    public function withMeta(MetaData $metaData): Collection;
+
+    /**
+     * Получить мета-данные коллекции
+     * @return MetaData
+     */
+    public function getMetaData(): MetaData;
+
+    /**
      * Получить сущность
      * @param mixed $offset
      * @return Entity

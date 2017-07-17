@@ -4,6 +4,7 @@ namespace BaseModel;
 
 use BaseModel\Interfaces\Entity as EntityInterface;
 use BaseModel\Interfaces\Collection as CollectionInterface;
+use BaseModel\Interfaces\EntityManager as EntityManagerInterface;
 
 class Entity extends Subject implements EntityInterface
 {
@@ -38,6 +39,12 @@ class Entity extends Subject implements EntityInterface
     private $_lastState;
 
     /**
+     * Ссылка на менеджер сущностей
+     * @var EntityManagerInterface
+     */
+    protected $em;
+
+    /**
      * Заполнить сущность данными,
      * при этом все предыдущие данные сущности удаляются
      * @param array $attributes
@@ -45,6 +52,7 @@ class Entity extends Subject implements EntityInterface
     public function __construct(array $attributes)
     {
         parent::__construct();
+        $this->em = EntityManager::getInstance();
         foreach ($attributes as $name => $attribute) {
             $this->__set($name, $attribute);
         }

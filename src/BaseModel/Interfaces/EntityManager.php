@@ -12,15 +12,31 @@ interface EntityManager
     public static function getInstance(): EntityManager;
 
     /**
-     * Найти сущность по идентификатору или по критериям
+     * Найти сущность по идентификатору
      * @param string $entityClass
-     * @param $condition
+     * @param string $id
      * @return Entity|null
      */
-    public function find(string $entityClass, $condition);
+    public function findById(string $entityClass, string $id);
 
     /**
-     * Найти коллекция сущностей по критериям
+     * Найти сущность по критериям
+     * @param string $entityClass
+     * @param array $criteria
+     * @return Entity|null
+     */
+    public function findOne(string $entityClass, array $criteria);
+
+    /**
+     * Поиск сущности кастомным SQL запросом
+     * @param string $entityClass
+     * @param string $sql
+     * @return Entity|null
+     */
+    public function findOneBySql(string $entityClass, string $sql);
+
+    /**
+     * Найти коллекцию сущностей по критериям
      * @param string $entityClass
      * @param array $criteria
      * @return Collection
@@ -28,14 +44,30 @@ interface EntityManager
     public function findAll(string $entityClass, array $criteria): Collection;
 
     /**
-     * Сохранить сущность
+     * Найти коллекцию сущностей кастомным SQL запросом
+     * @param string $entityClass
+     * @param string $sql
+     * @return Collection
+     */
+    public function findAllBySql(string $entityClass, string $sql): Collection;
+
+    /**
+     * Получить количество сущностей удовлетворяющих критерии
+     * @param string $entityClass
+     * @param array $criteria
+     * @return int
+     */
+    public function count(string $entityClass, array $criteria): int;
+
+    /**
+     * Поставить сущность в очередь на сохранение
      * @param Entity $entity
      * @return Thenable
      */
     public function save(Entity $entity): Thenable;
 
     /**
-     * Удалить сущность
+     * Поставить сущность в очередь на удаление
      * @param Entity $entity
      * @return Thenable
      */

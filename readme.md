@@ -1,4 +1,4 @@
-#Базовая модель
+# Базовая модель
 
 Предназначена для изоляции бизнес логики от фреймворка. 
 Для подключения к конкретному фреймворку, необходим класс реализующий интерфейс EntityManager.
@@ -10,7 +10,7 @@
 Пример:
 
 ```php 
-$em = new EntityManager();
+$em = new YiiEntityManager();
 $model = new Profile($em);
 
 try{
@@ -32,8 +32,7 @@ class User extends Entity
 {
 	public function getAvatar()
 	{
-		$em = EntityManager::getInstance();
-		return $em->find(Avatar::class, ['userId' => $this->getId()]);
+		return $this->em->findOne(Avatar::class, ['userId' => $this->getId()]);
 	}
 }
 ```

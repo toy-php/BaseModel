@@ -8,9 +8,9 @@ use BaseModel\Interfaces\EntityManager as EntityManagerInterface;
 abstract class Model extends Subject implements ModelInterface
 {
 
-    private $logLevel;
-    private $logMessage;
-    private $logContext = [];
+    private $_logLevel;
+    private $_logMessage;
+    private $_logContext = [];
     protected $entityManager;
 
     public function __construct(EntityManagerInterface $entityManager)
@@ -25,7 +25,7 @@ abstract class Model extends Subject implements ModelInterface
      */
     public function getLogLevel()
     {
-        return $this->logLevel;
+        return $this->_logLevel;
     }
 
     /**
@@ -33,7 +33,7 @@ abstract class Model extends Subject implements ModelInterface
      */
     public function getLogMessage():string
     {
-        return $this->logMessage;
+        return $this->_logMessage;
     }
 
     /**
@@ -41,7 +41,7 @@ abstract class Model extends Subject implements ModelInterface
      */
     public function getLogContext(): array
     {
-        return $this->logContext;
+        return $this->_logContext;
     }
 
     /**
@@ -52,13 +52,13 @@ abstract class Model extends Subject implements ModelInterface
      */
     public function log($level, $message, array $context = array())
     {
-        $this->logLevel = $level;
-        $this->logMessage = $message;
-        $this->logContext = $context;
+        $this->_logLevel = $level;
+        $this->_logMessage = $message;
+        $this->_logContext = $context;
         $this->setFlag(self::FLAG_LOG);
-        $this->logLevel = null;
-        $this->logMessage = null;
-        $this->logContext = [];
+        $this->_logLevel = null;
+        $this->_logMessage = null;
+        $this->_logContext = [];
     }
 
 }

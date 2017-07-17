@@ -4,6 +4,7 @@ namespace BaseModel;
 
 use BaseModel\Interfaces\Collection as CollectionInterface;
 use BaseModel\Interfaces\Entity as EntityInterface;
+use BaseModel\Interfaces\MetaData as MetaDataInterface;
 use Traversable;
 
 class Collection implements CollectionInterface
@@ -13,18 +14,24 @@ class Collection implements CollectionInterface
      * Тип сущностей коллекции
      * @var string
      */
-    private $type;
+    private $_type;
 
     /**
      * Массив сущностей
      * @var \ArrayObject
      */
-    private $entities;
+    private $_entities;
+
+    /**
+     * Мета-данные коллекции
+     * @var MetaDataInterface
+     */
+    private $_metaData;
 
     public function __construct(string $entityClass)
     {
-        $this->type = $entityClass;
-        $this->entities = new \ArrayObject();
+        $this->_type = $entityClass;
+        $this->_entities = new \ArrayObject();
     }
 
     /**
@@ -32,7 +39,7 @@ class Collection implements CollectionInterface
      */
     public function getType(): string
     {
-        return $this->type;
+        return $this->_type;
     }
 
     /**
@@ -42,7 +49,7 @@ class Collection implements CollectionInterface
      */
     protected function checkType(EntityInterface $entity)
     {
-        if (!$entity instanceof $this->type) {
+        if (!$entity instanceof $this->_type) {
             throw new Exception('Неверный тип объекта');
         }
     }
@@ -60,17 +67,41 @@ class Collection implements CollectionInterface
     }
 
     /**
+     * Получить коллекцию с мета-данными
+     * @param MetaDataInterface $metaData
+     * @return CollectionInterface
+     */
+    public function withMeta(MetaDataInterface $metaData): CollectionInterface
+    {
+        if($this->_metaData === $metaData){
+            return $this;
+        }
+        $instance = clone $this;
+        $instance->_metaData = $metaData;
+        return $instance;
+    }
+
+    /**
+     * Получить мета-данные коллекции
+     * @return MetaDataInterface
+     */
+    public function getMetaData(): MetaDataInterface
+    {
+        return $this->_metaData;
+    }
+
+    /**
      * @inheritdoc
      */
     public function withEntity(EntityInterface $entity): CollectionInterface
     {
         $this->checkType($entity);
-        $key = array_search($entity, $this->entities->getArrayCopy());
+        $key = array_search($entity, $this->_entities->getArrayCopy());
         if (!empty($key)) {
             return $this;
         }
         $instance = clone $this;
-        $instance->entities->append($entity);
+        $instance->_entities->append($entity);
         return $instance;
     }
 
@@ -80,12 +111,12 @@ class Collection implements CollectionInterface
     public function withoutEntity(EntityInterface $entity): CollectionInterface
     {
         $this->checkType($entity);
-        $key = array_search($entity, $this->entities->getArrayCopy());
+        $key = array_search($entity, $this->_entities->getArrayCopy());
         if (empty($key)) {
             return $this;
         }
         $instance = clone $this;
-        $instance->entities->offsetUnset($key);
+        $instance->_entities->offsetUnset($key);
         return $instance;
     }
 
@@ -94,7 +125,7 @@ class Collection implements CollectionInterface
      */
     public function offsetGet($offset): EntityInterface
     {
-        return $this->entities->offsetGet($offset);
+        return $this->_entities->offsetGet($offset);
     }
 
     /**
@@ -110,7 +141,7 @@ class Collection implements CollectionInterface
      */
     public function offsetExists($offset): bool
     {
-        return $this->entities->offsetExists($offset);
+        return $this->_entities->offsetExists($offset);
     }
 
     /**
@@ -126,7 +157,7 @@ class Collection implements CollectionInterface
      */
     public function clear()
     {
-        $this->entities->exchangeArray([]);
+        $this->_entities->exchangeArray([]);
     }
 
     /**
@@ -141,8 +172,8 @@ class Collection implements CollectionInterface
     public function filter(callable $function): CollectionInterface
     {
         $instance = clone $this;
-        $instance->entities->exchangeArray(
-            array_filter($this->entities->getArrayCopy(), $function)
+        $instance->_entities->exchangeArray(
+            array_filter($this->_entities->getArrayCopy(), $function)
         );
         return $instance;
     }
@@ -157,8 +188,8 @@ class Collection implements CollectionInterface
     public function map(callable $function): CollectionInterface
     {
         $instance = clone $this;
-        $instance->entities->exchangeArray(
-            array_map($function, $this->entities->getArrayCopy())
+        $instance->_entities->exchangeArray(
+            array_map($function, $this->_entities->getArrayCopy())
         );
         return $instance;
     }
@@ -171,7 +202,7 @@ class Collection implements CollectionInterface
      */
     public function reduce(callable $function, $initial = null)
     {
-        return array_reduce($this->entities->getArrayCopy(), $function, $initial);
+        return array_reduce($this->_entities->getArrayCopy(), $function, $initial);
     }
 
     /**
@@ -180,7 +211,7 @@ class Collection implements CollectionInterface
      */
     public function sort(callable $function)
     {
-        $this->entities->uasort($function);
+        $this->_entities->uasort($function);
     }
 
     /**
@@ -219,7 +250,7 @@ class Collection implements CollectionInterface
         if($direction != 'asc' and $direction != 'desc'){
             throw new Exception('Неизвестное направление сортировки');
         }
-        $this->entities->uksort(function ($a, $b) use ($direction){
+        $this->_entities->uksort(function ($a, $b) use ($direction){
             $compare = ($a <=> $b);
             return $direction == 'desc' ? -$compare : $compare;
         });
@@ -234,7 +265,7 @@ class Collection implements CollectionInterface
      */
     public function search($property, $value)
     {
-        $offset = array_search($value, array_column($this->entities->getArrayCopy(), $property));
+        $offset = array_search($value, array_column($this->_entities->getArrayCopy(), $property));
         if ($offset !== false and $offset >= 0) {
             return $this->offsetGet($offset);
         }
@@ -249,7 +280,7 @@ class Collection implements CollectionInterface
     {
         $result = [];
         /** @var EntityInterface $entity */
-        foreach ($this->entities as $key => $entity) {
+        foreach ($this->_entities as $key => $entity) {
             $result[$key] = $entity->toArray();
         }
         return $result;
@@ -264,7 +295,7 @@ class Collection implements CollectionInterface
      */
     public function getIterator()
     {
-        return $this->entities->getIterator();
+        return $this->_entities->getIterator();
     }
 
     /**
@@ -278,7 +309,7 @@ class Collection implements CollectionInterface
      */
     public function count()
     {
-        return $this->entities->count();
+        return $this->_entities->count();
     }
 
 }
