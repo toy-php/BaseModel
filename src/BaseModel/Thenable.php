@@ -46,10 +46,10 @@ class Thenable implements ThenableInterface
     /**
      * Изменение поведения промежуточных функций
      * @param $callable
-     * @return $this|static
+     * @return ThenableInterface
      * @throws Exception
      */
-    public function withBehavior($callable)
+    public function withBehavior($callable): ThenableInterface
     {
         if (!is_object($callable) || !method_exists($callable, '__invoke')) {
             throw new Exception('Неверная функция');

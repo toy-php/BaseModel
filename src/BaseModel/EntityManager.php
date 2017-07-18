@@ -45,7 +45,7 @@ abstract class EntityManager implements EntityManagerInterface
      * @param string $id
      * @return EntityInterface|null
      */
-    public function findById(string $entityClass, string $id)
+    public function findById(string $entityClass, string $id): ?EntityInterface
     {
         $entity = $this->doFindById($entityClass, $id);
         if (empty($entity)) {
@@ -60,7 +60,7 @@ abstract class EntityManager implements EntityManagerInterface
      * @param string $id
      * @return EntityInterface|null
      */
-    abstract protected function doFindById(string $entityClass, string $id);
+    abstract protected function doFindById(string $entityClass, string $id): ?EntityInterface;
 
     /**
      * Найти сущность по критериям
@@ -68,7 +68,7 @@ abstract class EntityManager implements EntityManagerInterface
      * @param array $criteria
      * @return EntityInterface|null
      */
-    public function findOne(string $entityClass, array $criteria)
+    public function findOne(string $entityClass, array $criteria): ?EntityInterface
     {
         $entity = $this->doFindOne($entityClass, $criteria);
         if (empty($entity)) {
@@ -83,7 +83,7 @@ abstract class EntityManager implements EntityManagerInterface
      * @param array $criteria
      * @return EntityInterface|null
      */
-    abstract protected function doFindOne(string $entityClass, array $criteria);
+    abstract protected function doFindOne(string $entityClass, array $criteria): ?EntityInterface;
 
     /**
      * Поиск сущности кастомным SQL запросом
@@ -91,7 +91,7 @@ abstract class EntityManager implements EntityManagerInterface
      * @param string $sql
      * @return EntityInterface|null
      */
-    public function findOneBySql(string $entityClass, string $sql)
+    public function findOneBySql(string $entityClass, string $sql): ?EntityInterface
     {
         $entity = $this->doFindOneBySql($entityClass, $sql);
         if (empty($entity)) {
@@ -106,7 +106,7 @@ abstract class EntityManager implements EntityManagerInterface
      * @param string $sql
      * @return EntityInterface|null
      */
-    abstract protected function doFindOneBySql(string $entityClass, string $sql);
+    abstract protected function doFindOneBySql(string $entityClass, string $sql): ?EntityInterface;
 
     /**
      * Найти коллекцию сущностей по критериям

@@ -11,7 +11,7 @@ abstract class Model extends Subject implements ModelInterface
 {
 
     private $_logLevel;
-    private $_logMessage;
+    private $_logMessage = '';
     private $_logContext = [];
     protected $entityManager;
 

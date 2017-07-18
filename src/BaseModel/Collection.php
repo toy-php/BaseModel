@@ -265,7 +265,7 @@ class Collection implements CollectionInterface
      * @param $value
      * @return EntityInterface|null
      */
-    public function search($property, $value)
+    public function search($property, $value): ?EntityInterface
     {
         $offset = array_search($value, array_column($this->_entities->getArrayCopy(), $property));
         if ($offset !== false and $offset >= 0) {
@@ -295,7 +295,7 @@ class Collection implements CollectionInterface
      * <b>Traversable</b>
      * @since 5.0.0
      */
-    public function getIterator()
+    public function getIterator(): Traversable
     {
         return $this->_entities->getIterator();
     }
@@ -309,7 +309,7 @@ class Collection implements CollectionInterface
      * The return value is cast to an integer.
      * @since 5.1.0
      */
-    public function count()
+    public function count(): int
     {
         return $this->_entities->count();
     }
