@@ -6,7 +6,7 @@ namespace BaseModel;
 
 use BaseModel\Interfaces\Aggregate as AggregateInterface;
 
-abstract class Aggregate extends Subject implements AggregateInterface
+class Aggregate extends Subject implements AggregateInterface
 {
 
     protected $entityManager;
