@@ -30,16 +30,16 @@ interface Entity extends Subject
 
     /**
      * Получить идентификатор сущности
-     * @return mixed
+     * @return string
      */
     public function getId();
 
     /**
      * Получить экземпляр сущности с соответствующим идентификатором
-     * @param $id
+     * @param string $id
      * @return Entity
      */
-    public function withId($id): Entity;
+    public function withId(string $id): Entity;
 
     /**
      * Откат изменений

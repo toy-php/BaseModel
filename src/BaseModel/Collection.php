@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BaseModel;
 
 use BaseModel\Interfaces\Collection as CollectionInterface;
@@ -73,7 +75,7 @@ class Collection implements CollectionInterface
      */
     public function withMeta(MetaDataInterface $metaData): CollectionInterface
     {
-        if($this->_metaData === $metaData){
+        if ($this->_metaData === $metaData) {
             return $this;
         }
         $instance = clone $this;
@@ -224,14 +226,14 @@ class Collection implements CollectionInterface
     public function sortByField(string $fieldName, string $direction = 'asc'): CollectionInterface
     {
         $direction = strtolower($direction);
-        if($direction != 'asc' or $direction != 'desc'){
+        if ($direction != 'asc' or $direction != 'desc') {
             throw new Exception('Неизвестное направление сортировки');
         }
         $this->sort(function ($a, $b) use ($fieldName, $direction) {
             if (is_numeric($a->{$fieldName}) or is_numeric($b->{$fieldName})) {
                 $compare = ($a->{$fieldName} <=> $b->{$fieldName});
-            }else{
-                $compare = strcmp(strtolower($a->{$fieldName}),strtolower($b->{$fieldName}));
+            } else {
+                $compare = strcmp(strtolower($a->{$fieldName}), strtolower($b->{$fieldName}));
             }
             return $direction == 'desc' ? -$compare : $compare;
         });
@@ -247,10 +249,10 @@ class Collection implements CollectionInterface
     public function keySort(string $direction = 'asc'): CollectionInterface
     {
         $direction = strtolower($direction);
-        if($direction != 'asc' and $direction != 'desc'){
+        if ($direction != 'asc' and $direction != 'desc') {
             throw new Exception('Неизвестное направление сортировки');
         }
-        $this->_entities->uksort(function ($a, $b) use ($direction){
+        $this->_entities->uksort(function ($a, $b) use ($direction) {
             $compare = ($a <=> $b);
             return $direction == 'desc' ? -$compare : $compare;
         });

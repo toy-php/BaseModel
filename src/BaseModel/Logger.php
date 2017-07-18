@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BaseModel;
 
 use Psr\Log\LoggerInterface;
@@ -27,10 +29,10 @@ class Logger implements \SplObserver
      */
     public function update(SplSubject $subject)
     {
-        if(!$subject instanceof ModelInterface){
+        if (!$subject instanceof ModelInterface) {
             return;
         }
-        if($subject->getFlag() === ModelInterface::FLAG_LOG){
+        if ($subject->getFlag() === ModelInterface::FLAG_LOG) {
             $this->logger->log(
                 $subject->getLogLevel(),
                 $subject->getLogMessage(),

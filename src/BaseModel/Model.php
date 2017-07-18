@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BaseModel;
 
 use BaseModel\Interfaces\Model as ModelInterface;
@@ -31,7 +33,7 @@ abstract class Model extends Subject implements ModelInterface
     /**
      * @inheritdoc
      */
-    public function getLogMessage():string
+    public function getLogMessage(): string
     {
         return $this->_logMessage;
     }

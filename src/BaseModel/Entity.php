@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BaseModel;
 
 use BaseModel\Interfaces\Entity as EntityInterface;
@@ -11,7 +13,7 @@ class Entity extends Subject implements EntityInterface
 
     /**
      * Идентификатор сущности
-     * @var mixed
+     * @var string
      */
     private $_id;
 
@@ -104,9 +106,9 @@ class Entity extends Subject implements EntityInterface
     /**
      * @inheritdoc
      */
-    public function withId($id): EntityInterface
+    public function withId(string $id): EntityInterface
     {
-        if($this->_id === $id){
+        if ($this->_id === $id) {
             return $this;
         }
         $instance = clone ($this);
@@ -127,7 +129,7 @@ class Entity extends Subject implements EntityInterface
             return $this->_attributes[$name];
         } elseif (isset($this->_relations[$name])) {
             return $this->_relations[$name];
-        }elseif (isset($this->_lazyFunctions[$name])){
+        } elseif (isset($this->_lazyFunctions[$name])) {
             $value = $this->_lazyFunctions[$name]($this);
             $this->_setAttribute($name, $value);
             return $value;
@@ -143,12 +145,12 @@ class Entity extends Subject implements EntityInterface
     private function _setAttribute($name, $value)
     {
         if (($value instanceof EntityInterface
-            or $value instanceof CollectionInterface)
-        and !isset($this->_relations[$name])
+                or $value instanceof CollectionInterface)
+            and !isset($this->_relations[$name])
         ) {
             $this->_relations[$name] = $value;
             return;
-        }elseif (is_callable($value)){
+        } elseif (is_callable($value)) {
             $this->_lazyFunctions[$name] = $value;
             return;
         }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BaseModel;
 
 use BaseModel\Interfaces\Entity as EntityInterface;
@@ -27,14 +29,14 @@ class UnitOfWork implements UnitOfWorkInterface
      */
     public function save(EntityInterface $entity): ThenableInterface
     {
-        if($this->entities->contains($entity)){
+        if ($this->entities->contains($entity)) {
             throw new Exception('Сущность уже добавлена в очередь на сохранение');
         }
         $flag = $entity->getFlag();
-        switch ($flag){
+        switch ($flag) {
             case EntityInterface::FLAG_DIRTY:
             case EntityInterface::FLAG_NEW:
-                $then = new Thenable(function (EntityInterface $entity){
+                $then = new Thenable(function (EntityInterface $entity) {
                     return $entity;
                 });
                 $this->entities->attach($entity, $then);
@@ -54,10 +56,10 @@ class UnitOfWork implements UnitOfWorkInterface
      */
     public function remove(EntityInterface $entity): ThenableInterface
     {
-        if($this->entities->contains($entity)){
+        if ($this->entities->contains($entity)) {
             throw new Exception('Сущность уже добавлена в карту состояний');
         }
-        $then = new Thenable(function (EntityInterface $entity){
+        $then = new Thenable(function (EntityInterface $entity) {
             return $entity;
         });
         $this->entities->attach($entity, $then);

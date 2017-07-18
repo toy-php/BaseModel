@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BaseModel;
 
 use BaseModel\Interfaces\Collection as CollectionInterface;
@@ -31,7 +33,7 @@ abstract class EntityManager implements EntityManagerInterface
      */
     public static function getInstance(): EntityManagerInterface
     {
-        if(empty(self::$_instance)){
+        if (empty(self::$_instance)) {
             throw new Exception('Менеджер сущностей не инициализирован');
         }
         return self::$_instance;
@@ -46,7 +48,7 @@ abstract class EntityManager implements EntityManagerInterface
     public function findById(string $entityClass, string $id)
     {
         $entity = $this->doFindById($entityClass, $id);
-        if (empty($entity)){
+        if (empty($entity)) {
             return null;
         }
         return $this->identityMap->get($entity);
@@ -69,7 +71,7 @@ abstract class EntityManager implements EntityManagerInterface
     public function findOne(string $entityClass, array $criteria)
     {
         $entity = $this->doFindOne($entityClass, $criteria);
-        if (empty($entity)){
+        if (empty($entity)) {
             return null;
         }
         return $this->identityMap->get($entity);
@@ -92,7 +94,7 @@ abstract class EntityManager implements EntityManagerInterface
     public function findOneBySql(string $entityClass, string $sql)
     {
         $entity = $this->doFindOneBySql($entityClass, $sql);
-        if (empty($entity)){
+        if (empty($entity)) {
             return null;
         }
         return $this->identityMap->get($entity);
@@ -115,7 +117,7 @@ abstract class EntityManager implements EntityManagerInterface
     public function findAll(string $entityClass, array $criteria): CollectionInterface
     {
         $collection = $this->doFindAll($entityClass, $criteria);
-        return $collection->map(function (EntityInterface $entity){
+        return $collection->map(function (EntityInterface $entity) {
             return $this->identityMap->get($entity);
         });
     }
@@ -137,7 +139,7 @@ abstract class EntityManager implements EntityManagerInterface
     public function findAllBySql(string $entityClass, string $sql): CollectionInterface
     {
         $collection = $this->doFindAllBySql($entityClass, $sql);
-        return $collection->map(function (EntityInterface $entity){
+        return $collection->map(function (EntityInterface $entity) {
             return $this->identityMap->get($entity);
         });
     }
@@ -158,7 +160,7 @@ abstract class EntityManager implements EntityManagerInterface
     public function save(EntityInterface $entity): ThenableInterface
     {
         return $this->unitOfWork->save($entity)
-            ->then(function (EntityInterface $entity){
+            ->then(function (EntityInterface $entity) {
                 return $this->doSave($entity);
             });
     }
@@ -168,7 +170,7 @@ abstract class EntityManager implements EntityManagerInterface
      * @param EntityInterface $entity
      * @return bool
      */
-    abstract protected function doSave(EntityInterface $entity):bool ;
+    abstract protected function doSave(EntityInterface $entity): bool;
 
     /**
      * Поставить сущность в очередь на удаление
@@ -178,7 +180,7 @@ abstract class EntityManager implements EntityManagerInterface
     public function remove(EntityInterface $entity): ThenableInterface
     {
         return $this->unitOfWork->remove($entity)
-            ->then(function (EntityInterface $entity){
+            ->then(function (EntityInterface $entity) {
                 return $this->doRemove($entity);
             });
     }
