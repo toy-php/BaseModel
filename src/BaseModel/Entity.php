@@ -48,18 +48,13 @@ class Entity extends Subject implements EntityInterface
     protected $entityManager;
 
     /**
-     * Заполнить сущность данными,
-     * при этом все предыдущие данные сущности удаляются
-     * @param array $attributes
+     * Entity constructor.
      */
-    public function __construct(array $attributes)
+    public function __construct()
     {
         parent::__construct();
         $this->entityManager = EntityManager::getInstance();
-        foreach ($attributes as $name => $attribute) {
-            $this->__set($name, $attribute);
-        }
-        $this->setFlag((!empty($this->_id)) ? self::FLAG_CLEAN : self::FLAG_NEW);
+        $this->setFlag(self::FLAG_NEW);
         $this->saveState();
     }
 
@@ -88,24 +83,39 @@ class Entity extends Subject implements EntityInterface
 
     /**
      * Получить экземпляр сущности
+     * @param string $entityClass
+     * @return EntityInterface
+     * @throws Exception
+     */
+    public static function create(string $entityClass): EntityInterface
+    {
+        $entity = new $entityClass();
+        if(!$entity instanceof EntityInterface){
+            throw new Exception(sprintf('Класс сущности "%s" не реализует необходимый интерфейс', $entityClass));
+        }
+        return $entity;
+    }
+
+    /**
+     * Получить экземпляр сущности с соответствующими данными
      * @param array $data
      * @return EntityInterface
      */
-    public static function withData(array $data): EntityInterface
+    public function withData(array $data): EntityInterface
     {
-        return new static($data);
+        $instance = clone ($this);
+        foreach ($data as $name => $attribute) {
+            $instance->__set($name, $attribute);
+        }
+        $instance->setFlag((!empty($instance->_id)) ? self::FLAG_CLEAN : self::FLAG_NEW);
+        $instance->saveState();
+        return $instance;
     }
 
     /**
-     * @inheritdoc
-     */
-    public function getId()
-    {
-        return $this->_id;
-    }
-
-    /**
-     * @inheritdoc
+     * Получить экземпляр сущности с соответствующим идентификатором
+     * @param string $id
+     * @return EntityInterface
      */
     public function withId(string $id): EntityInterface
     {
@@ -117,6 +127,14 @@ class Entity extends Subject implements EntityInterface
         $instance->setFlag(self::FLAG_CLEAN);
         $instance->saveState();
         return $instance;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getId()
+    {
+        return $this->_id;
     }
 
     /**

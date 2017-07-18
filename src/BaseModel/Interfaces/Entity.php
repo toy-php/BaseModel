@@ -29,10 +29,11 @@ interface Entity extends Subject
     const FLAG_DIRTY = 0x03;
 
     /**
-     * Получить идентификатор сущности
-     * @return string
+     * Получить экземпляр сущности с соответствующими данными
+     * @param array $data
+     * @return Entity
      */
-    public function getId();
+    public function withData(array $data): Entity;
 
     /**
      * Получить экземпляр сущности с соответствующим идентификатором
@@ -40,6 +41,12 @@ interface Entity extends Subject
      * @return Entity
      */
     public function withId(string $id): Entity;
+
+    /**
+     * Получить идентификатор сущности
+     * @return string
+     */
+    public function getId();
 
     /**
      * Откат изменений
