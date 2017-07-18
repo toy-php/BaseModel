@@ -11,16 +11,15 @@ class Subject extends Object implements SubjectInterface
 {
 
     /**
-     * Флаг субъекта
-     * @var int
-     */
-    private $_flag;
-
-    /**
      * Массив наблюдателей за субъектом
      * @var \SplObjectStorage
      */
     private $_observers;
+    /**
+     * Флаг состояния объекта
+     * @var int
+     */
+    private $_flag;
 
     public function __construct()
     {
@@ -33,7 +32,7 @@ class Subject extends Object implements SubjectInterface
     }
 
     /**
-     * Установить флаг субъекта
+     * Установить флаг состояния субъекта
      * @param int $flag
      */
     protected function setFlag(int $flag)
@@ -43,7 +42,7 @@ class Subject extends Object implements SubjectInterface
     }
 
     /**
-     * Получить флаг субъекта
+     * Получить флаг состояния субъекта
      * @return int
      */
     public function getFlag(): int

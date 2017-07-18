@@ -32,7 +32,7 @@ class User extends Entity
 {
 	public function getAvatar()
 	{
-		return $this->em->findOne(Avatar::class, ['userId' => $this->getId()]);
+		return $this->entityManager->findOne(Avatar::class, ['userId' => $this->getId()]);
 	}
 }
 ```

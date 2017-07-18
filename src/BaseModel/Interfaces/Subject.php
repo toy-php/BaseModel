@@ -4,12 +4,11 @@ namespace BaseModel\Interfaces;
 
 interface Subject extends \SplSubject, Object
 {
-
     /**
-     * Получить флаг сущности
+     * Получить флаг состояния субъекта
      * @return int
      */
-    public function getFlag();
+    public function getFlag(): int;
 
     /**
      * Установить свойство

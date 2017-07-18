@@ -4,7 +4,6 @@ namespace BaseModel\Interfaces;
 
 interface Object
 {
-
     /**
      * Установить свойство
      * @param $name

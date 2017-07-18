@@ -30,9 +30,10 @@ class Entity extends Subject implements EntityInterface
     private $_relations = [];
 
     /**
+     * Функции
      * @var callable[]
      */
-    private $_lazyFunctions = [];
+    private $functions = [];
 
     /**
      * Сохраненное состояние сущности
@@ -44,7 +45,7 @@ class Entity extends Subject implements EntityInterface
      * Ссылка на менеджер сущностей
      * @var EntityManagerInterface
      */
-    protected $em;
+    protected $entityManager;
 
     /**
      * Заполнить сущность данными,
@@ -54,7 +55,7 @@ class Entity extends Subject implements EntityInterface
     public function __construct(array $attributes)
     {
         parent::__construct();
-        $this->em = EntityManager::getInstance();
+        $this->entityManager = EntityManager::getInstance();
         foreach ($attributes as $name => $attribute) {
             $this->__set($name, $attribute);
         }
@@ -129,10 +130,8 @@ class Entity extends Subject implements EntityInterface
             return $this->_attributes[$name];
         } elseif (isset($this->_relations[$name])) {
             return $this->_relations[$name];
-        } elseif (isset($this->_lazyFunctions[$name])) {
-            $value = $this->_lazyFunctions[$name]($this);
-            $this->_setAttribute($name, $value);
-            return $value;
+        } elseif (isset($this->functions[$name])) {
+            return $this->functions[$name]($this);
         }
         return null;
     }
@@ -151,7 +150,7 @@ class Entity extends Subject implements EntityInterface
             $this->_relations[$name] = $value;
             return;
         } elseif (is_callable($value)) {
-            $this->_lazyFunctions[$name] = $value;
+            $this->functions[$name] = $value;
             return;
         }
         $this->_attributes[$name] = $value;
