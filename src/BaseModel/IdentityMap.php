@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BaseModel;
 
 use BaseModel\Interfaces\Entity as EntityInterface;
-use ORM\Interfaces\IdentityMap as IdentityMapInterface;
+use BaseModel\Interfaces\IdentityMap as IdentityMapInterface;
 
 class IdentityMap implements IdentityMapInterface
 {
@@ -27,10 +27,11 @@ class IdentityMap implements IdentityMapInterface
         if (empty($id)) {
             throw new Exception('Не определен идентификатор сущности');
         }
-        if (isset($this->_entities[$id])) {
-            return $this->_entities[$id];
+        $type = get_class($entity);
+        if (isset($this->_entities[$type][$id])) {
+            return $this->_entities[$type][$id];
         }
-        return $this->_entities[$id] = $entity;
+        return $this->_entities[$type][$id] = $entity;
     }
 
 }
