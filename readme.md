@@ -7,15 +7,54 @@
 
 Методы класса Model в качестве аргументов принимают некоторые параметры скалярного типа, либо иммутабельные объекты наследующие ValueObject. В них происходит валидация и фильтрация входных данных
 В качесве параметров нельзя передавать ссылки на объекты фреймворка.
-Пример:
 
+Пример связи с фреймворком Yii:
 ```php 
-$em = new YiiEntityManager();
-$model = new Profile($em);
+new YiiEntityManager(); // Наследуется от AbstractEntityManager
+
+$profile = new Profile(); // Наследуется от Aggregate
+try{
+	$userInfoData = new UserData($login, $password); // Наследуется от ValueObject
+	$profile->updateUserInfo($userId, $userInfoData);
+}catch(ValidateException $e){
+	echo 'Ошибка валидации: ' . $e->getMessage();
+}
+```
+
+Инициализация встроенных компонент:
+
+```php
+// Инициализация карты преобразователей
+$mappersMap = new \BaseModel\MappersMap();
+
+// Регистрация адаптера или любых других сервисов для преобразователей
+$mappersMap['adapter'] = function (){
+    $dsn= 'mysql:host=localhost;dbname=test;charset=utf8';
+    $username = 'test';
+    $password = 'secret';
+    $options = [
+        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+        \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8",
+    ];
+    $pdo = new PDO($dsn, $username, $password, $options);
+    return new \BaseModel\Adapter($pdo);
+};
+
+// Связь преобразователя с сущностью
+$mappersMap->bindEntityWithMapper(
+    Product::class, 
+    \BaseModel\Mapper::lazyBuild('products', Product::class)
+);
+
+// Инициализация менеджера сущностей
+new \BaseModel\EntityManager($mappersMap);
+
+// Инициализация агрегата
+$catalog = new Catalog(); // Наследуется от Aggregate
 
 try{
-	$userData = new UserData($login, $password); // Наследуется от ValueObject
-	$model->updateUser($userId, $userData);
+	$productData = new ProductData($title, $description); // Наследуется от ValueObject
+	$catalog->updateProduct($productId, $productData);
 }catch(ValidateException $e){
 	echo 'Ошибка валидации: ' . $e->getMessage();
 }
