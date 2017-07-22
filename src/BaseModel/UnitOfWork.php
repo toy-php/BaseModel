@@ -16,9 +16,28 @@ class UnitOfWork implements UnitOfWorkInterface
      */
     protected $entities;
 
-    public function __construct()
+    public function __construct(\SplObjectStorage $entities = null)
     {
-        $this->entities = new \SplObjectStorage();
+        $this->entities = $entities ?: new \SplObjectStorage();
+    }
+
+    /**
+     * Наличие сущности в карте состояний
+     * @param EntityInterface $entity
+     * @return bool
+     */
+    public function contains(EntityInterface $entity):bool
+    {
+        return $this->entities->contains($entity);
+    }
+
+    /**
+     * Исключить сущность из карты состояний
+     * @param EntityInterface $entity
+     */
+    public function detach(EntityInterface $entity)
+    {
+        $this->entities->detach($entity);
     }
 
     /**
@@ -29,7 +48,7 @@ class UnitOfWork implements UnitOfWorkInterface
      */
     public function save(EntityInterface $entity): ThenableInterface
     {
-        if ($this->entities->contains($entity)) {
+        if ($this->contains($entity)) {
             throw new Exception('Сущность уже добавлена в очередь на сохранение');
         }
         $flag = $entity->getFlag();
@@ -56,7 +75,7 @@ class UnitOfWork implements UnitOfWorkInterface
      */
     public function remove(EntityInterface $entity): ThenableInterface
     {
-        if ($this->entities->contains($entity)) {
+        if ($this->contains($entity)) {
             throw new Exception('Сущность уже добавлена в карту состояний');
         }
         $then = new Thenable(function (EntityInterface $entity) {
@@ -71,6 +90,7 @@ class UnitOfWork implements UnitOfWorkInterface
      */
     public function commit()
     {
+        /** @var EntityInterface $entity */
         foreach ($this->entities as $entity) {
             $this->entities[$entity]($entity);
         }
@@ -82,10 +102,6 @@ class UnitOfWork implements UnitOfWorkInterface
      */
     public function rollBack()
     {
-        /** @var EntityInterface $entity */
-        foreach ($this->entities as $entity) {
-            $entity->rollBack();
-        }
         $this->entities->removeAll($this->entities);
     }
 }

@@ -6,52 +6,23 @@ namespace BaseModel;
 
 use BaseModel\Interfaces\Collection as CollectionInterface;
 use BaseModel\Interfaces\Entity as EntityInterface;
-use BaseModel\Interfaces\EntityManager as EntityManagerInterface;
 use BaseModel\Interfaces\IdentityMap as IdentityMapInterface;
-use BaseModel\Interfaces\Thenable as ThenableInterface;
 use BaseModel\Interfaces\UnitOfWork as UnitOfWorkInterface;
+use BaseModel\Interfaces\MappersMap as MappersMapInterface;
 
-abstract class EntityManager implements EntityManagerInterface
+class EntityManager extends AbstractEntityManager
 {
 
-    protected $identityMap;
-    protected $unitOfWork;
-    private static $_instance;
+    protected $mappersMap;
 
-    public function __construct(IdentityMapInterface $identityMap = null,
-                                UnitOfWorkInterface $unitOfWork = null)
+    public function __construct(MappersMapInterface $mappersMap,
+                                bool $autoPersistence = true,
+                                IdentityMapInterface $identityMap = null,
+                                UnitOfWorkInterface $unitOfWork = null,
+                                \SplObjectStorage $entitiesMementos = null)
     {
-        $this->identityMap = $identityMap ?: new IdentityMap();
-        $this->unitOfWork = $unitOfWork ?: new UnitOfWork();
-        self::$_instance = $this;
-    }
-
-    /**
-     * Ссылка на объект менеджера сущностей
-     * @return EntityManagerInterface
-     * @throws Exception
-     */
-    public static function getInstance(): EntityManagerInterface
-    {
-        if (empty(self::$_instance)) {
-            throw new Exception('Менеджер сущностей не инициализирован');
-        }
-        return self::$_instance;
-    }
-
-    /**
-     * Найти сущность по идентификатору или по критериям
-     * @param string $entityClass
-     * @param string $id
-     * @return EntityInterface|null
-     */
-    public function findById(string $entityClass, string $id): ?EntityInterface
-    {
-        $entity = $this->doFindById($entityClass, $id);
-        if (empty($entity)) {
-            return null;
-        }
-        return $this->identityMap->get($entity);
+        $this->mappersMap = $mappersMap;
+        parent::__construct($autoPersistence, $identityMap, $unitOfWork, $entitiesMementos);
     }
 
     /**
@@ -60,21 +31,10 @@ abstract class EntityManager implements EntityManagerInterface
      * @param string $id
      * @return EntityInterface|null
      */
-    abstract protected function doFindById(string $entityClass, string $id): ?EntityInterface;
-
-    /**
-     * Найти сущность по критериям
-     * @param string $entityClass
-     * @param array $criteria
-     * @return EntityInterface|null
-     */
-    public function findOne(string $entityClass, array $criteria): ?EntityInterface
+    protected function doFindById(string $entityClass, string $id): ?EntityInterface
     {
-        $entity = $this->doFindOne($entityClass, $criteria);
-        if (empty($entity)) {
-            return null;
-        }
-        return $this->identityMap->get($entity);
+        $mapper = $this->mappersMap->loadMapper($entityClass);
+        return $mapper->findById($id);
     }
 
     /**
@@ -83,43 +43,23 @@ abstract class EntityManager implements EntityManagerInterface
      * @param array $criteria
      * @return EntityInterface|null
      */
-    abstract protected function doFindOne(string $entityClass, array $criteria): ?EntityInterface;
-
-    /**
-     * Поиск сущности кастомным SQL запросом
-     * @param string $entityClass
-     * @param string $sql
-     * @return EntityInterface|null
-     */
-    public function findOneBySql(string $entityClass, string $sql): ?EntityInterface
+    protected function doFindOne(string $entityClass, array $criteria): ?EntityInterface
     {
-        $entity = $this->doFindOneBySql($entityClass, $sql);
-        if (empty($entity)) {
-            return null;
-        }
-        return $this->identityMap->get($entity);
+        $mapper = $this->mappersMap->loadMapper($entityClass);
+        return $mapper->findOne($criteria);
     }
 
     /**
      * Реализация поиска сущности кастомным SQL запросом
      * @param string $entityClass
      * @param string $sql
+     * @param array $bindings
      * @return EntityInterface|null
      */
-    abstract protected function doFindOneBySql(string $entityClass, string $sql): ?EntityInterface;
-
-    /**
-     * Найти коллекцию сущностей по критериям
-     * @param string $entityClass
-     * @param array $criteria
-     * @return CollectionInterface
-     */
-    public function findAll(string $entityClass, array $criteria): CollectionInterface
+    protected function doFindOneBySql(string $entityClass, string $sql, array $bindings = []): ?EntityInterface
     {
-        $collection = $this->doFindAll($entityClass, $criteria);
-        return $collection->map(function (EntityInterface $entity) {
-            return $this->identityMap->get($entity);
-        });
+        $mapper = $this->mappersMap->loadMapper($entityClass);
+        return $mapper->findOneBySql($sql, $bindings);
     }
 
     /**
@@ -128,41 +68,23 @@ abstract class EntityManager implements EntityManagerInterface
      * @param array $criteria
      * @return CollectionInterface
      */
-    abstract protected function doFindAll(string $entityClass, array $criteria): CollectionInterface;
-
-    /**
-     * Найти коллекцию сущностей кастомным SQL запросом
-     * @param string $entityClass
-     * @param string $sql
-     * @return CollectionInterface
-     */
-    public function findAllBySql(string $entityClass, string $sql): CollectionInterface
+    protected function doFindAll(string $entityClass, array $criteria): CollectionInterface
     {
-        $collection = $this->doFindAllBySql($entityClass, $sql);
-        return $collection->map(function (EntityInterface $entity) {
-            return $this->identityMap->get($entity);
-        });
+        $mapper = $this->mappersMap->loadMapper($entityClass);
+        return $mapper->findAll($criteria);
     }
 
     /**
      * Реализация поиска коллекции сущностей кастомным SQL запросом
      * @param string $entityClass
      * @param string $sql
+     * @param array $bindings
      * @return CollectionInterface
      */
-    abstract protected function doFindAllBySql(string $entityClass, string $sql): CollectionInterface;
-
-    /**
-     * Поставить сущность в очередь на сохранение
-     * @param EntityInterface $entity
-     * @return ThenableInterface
-     */
-    public function save(EntityInterface $entity): ThenableInterface
+    protected function doFindAllBySql(string $entityClass, string $sql, array $bindings = []): CollectionInterface
     {
-        return $this->unitOfWork->save($entity)
-            ->then(function (EntityInterface $entity) {
-                return $this->doSave($entity);
-            });
+        $mapper = $this->mappersMap->loadMapper($entityClass);
+        return $mapper->findAllBySql($sql, $bindings);
     }
 
     /**
@@ -170,19 +92,10 @@ abstract class EntityManager implements EntityManagerInterface
      * @param EntityInterface $entity
      * @return bool
      */
-    abstract protected function doSave(EntityInterface $entity): bool;
-
-    /**
-     * Поставить сущность в очередь на удаление
-     * @param EntityInterface $entity
-     * @return ThenableInterface
-     */
-    public function remove(EntityInterface $entity): ThenableInterface
+    protected function doSave(EntityInterface $entity): bool
     {
-        return $this->unitOfWork->remove($entity)
-            ->then(function (EntityInterface $entity) {
-                return $this->doRemove($entity);
-            });
+        $mapper = $this->mappersMap->loadMapper(get_class($entity));
+        return $mapper->save($entity);
     }
 
     /**
@@ -190,21 +103,21 @@ abstract class EntityManager implements EntityManagerInterface
      * @param EntityInterface $entity
      * @return bool
      */
-    abstract protected function doRemove(EntityInterface $entity): bool;
-
-    /**
-     * Закрепление изменений
-     */
-    public function commit()
+    protected function doRemove(EntityInterface $entity): bool
     {
-        $this->unitOfWork->commit();
+        $mapper = $this->mappersMap->loadMapper(get_class($entity));
+        return $mapper->remove($entity);
     }
 
     /**
-     * Откат изменений
+     * Получить количество сущностей удовлетворяющих критерии
+     * @param string $entityClass
+     * @param array $criteria
+     * @return int
      */
-    public function rollBack()
+    public function count(string $entityClass, array $criteria): int
     {
-        $this->unitOfWork->rollBack();
+        $mapper = $this->mappersMap->loadMapper($entityClass);
+        return $mapper->count($criteria);
     }
 }

@@ -5,32 +5,58 @@ declare(strict_types=1);
 namespace BaseModel;
 
 use BaseModel\Interfaces\Aggregate as AggregateInterface;
+use BaseModel\Interfaces\MetaData as MetaDataInterface;
 
 class Aggregate extends Subject implements AggregateInterface
 {
 
-    protected $entityManager;
+    /**
+     * Объект метаданных
+     * @var MetaDataInterface|null
+     */
+    private $metaData;
 
-    public function __construct()
+    /**
+     * Сохранение состояния агрегата
+     */
+    public function persist()
     {
-        parent::__construct();
-        $this->entityManager = EntityManager::getInstance();
-        $this->setFlag(self::FLAG_CLEAN);
+        $this->entityManager->persist();
     }
 
     /**
-     * Получить экземпляр агрегата
-     * @param string $aggregateClass
-     * @return AggregateInterface
-     * @throws Exception
+     * Установить мета-данные
+     * @param MetaDataInterface $metaData
      */
-    public static function create(string $aggregateClass): AggregateInterface
+    public function setMetaData(MetaDataInterface $metaData)
     {
-        $aggregate = new $aggregateClass();
-        if(!$aggregate instanceof AggregateInterface){
-            throw new Exception(sprintf('Класс агрегата "%s" не реализует необходимый интерфейс', $aggregateClass));
-        }
-        return $aggregate;
+        $this->metaData = $metaData;
     }
 
+    /**
+     * Получить мета-данные
+     * @return MetaDataInterface
+     */
+    public function getMetaData(): MetaDataInterface
+    {
+        return $this->metaData ?: new MetaData([]);
+    }
+
+    /**
+     * Устновка флага успешного завершения транзакции
+     * @return void
+     */
+    public function setCompleted()
+    {
+        $this->setFlag(self::FLAG_COMPLETE);
+    }
+
+    /**
+     * Устновка флага завершения транзакции с ошибкой
+     * @return void
+     */
+    public function setHasError()
+    {
+        $this->setFlag(self::FLAG_HAS_ERROR);
+    }
 }

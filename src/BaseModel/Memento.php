@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace BaseModel;
 
-class Memento
+use BaseModel\Interfaces\Memento as MementoInterface;
+
+class Memento implements MementoInterface
 {
 
     protected $state;

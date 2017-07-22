@@ -9,7 +9,7 @@ interface EntityManager
      * Ссылка на объект менеджера сущностей
      * @return EntityManager
      */
-    public static function getInstance(): EntityManager;
+    public static function getEntityManager(): EntityManager;
 
     /**
      * Найти сущность по идентификатору
@@ -31,9 +31,10 @@ interface EntityManager
      * Поиск сущности кастомным SQL запросом
      * @param string $entityClass
      * @param string $sql
+     * @param array $bindings
      * @return Entity|null
      */
-    public function findOneBySql(string $entityClass, string $sql);
+    public function findOneBySql(string $entityClass, string $sql, array $bindings = []): ?Entity;
 
     /**
      * Найти коллекцию сущностей по критериям
@@ -76,7 +77,7 @@ interface EntityManager
     /**
      * Закрепление изменений
      */
-    public function commit();
+    public function persist();
 
     /**
      * Откат изменений

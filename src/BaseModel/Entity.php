@@ -6,22 +6,22 @@ namespace BaseModel;
 
 use BaseModel\Interfaces\Entity as EntityInterface;
 use BaseModel\Interfaces\Collection as CollectionInterface;
-use BaseModel\Interfaces\EntityManager as EntityManagerInterface;
+use BaseModel\Interfaces\Memento as MementoInterface;
 
 class Entity extends Subject implements EntityInterface
 {
-
-    /**
-     * Идентификатор сущности
-     * @var string
-     */
-    private $_id;
 
     /**
      * Атрибуты сущности
      * @var array
      */
     private $_attributes = [];
+
+    /**
+     * Измененные атрибуты
+     * @var array
+     */
+    private $_dirtyAttributes = [];
 
     /**
      * Отношения сущности
@@ -36,64 +36,28 @@ class Entity extends Subject implements EntityInterface
     private $functions = [];
 
     /**
-     * Сохраненное состояние сущности
-     * @var Memento
+     * Получить снимок состояния сущности
+     * @return MementoInterface
      */
-    private $_lastState;
-
-    /**
-     * Ссылка на менеджер сущностей
-     * @var EntityManagerInterface
-     */
-    protected $entityManager;
-
-    /**
-     * Entity constructor.
-     */
-    public function __construct()
+    public function createMemento(): MementoInterface
     {
-        parent::__construct();
-        $this->entityManager = EntityManager::getInstance();
-        $this->setFlag(self::FLAG_NEW);
-        $this->saveState();
-    }
-
-    /**
-     * Сохранение состояния сущности
-     */
-    private function saveState()
-    {
-        $this->_lastState = new Memento([
-            $this->_id,
+        return new Memento([
             $this->_attributes,
+            $this->_dirtyAttributes,
             $this->getFlag()
         ]);
     }
 
     /**
-     * Откат изменений
+     * Вернуть состояние сущности из снимка состояния
+     * @param MementoInterface $memento
      */
-    public function rollBack()
+    public function setMemento(MementoInterface $memento)
     {
-        list($id, $attributes, $flag) = $this->_lastState->getState();
-        $this->_id = $id;
+        list($attributes, $dirtyAttributes, $flag) = $memento->getState();
         $this->_attributes = $attributes;
+        $this->_dirtyAttributes = $dirtyAttributes;
         $this->setFlag($flag);
-    }
-
-    /**
-     * Получить экземпляр сущности
-     * @param string $entityClass
-     * @return EntityInterface
-     * @throws Exception
-     */
-    public static function create(string $entityClass): EntityInterface
-    {
-        $entity = new $entityClass();
-        if(!$entity instanceof EntityInterface){
-            throw new Exception(sprintf('Класс сущности "%s" не реализует необходимый интерфейс', $entityClass));
-        }
-        return $entity;
     }
 
     /**
@@ -103,38 +67,13 @@ class Entity extends Subject implements EntityInterface
      */
     public function withData(array $data): EntityInterface
     {
-        $instance = clone ($this);
+        $instance = clone $this;
         foreach ($data as $name => $attribute) {
             $instance->__set($name, $attribute);
         }
-        $instance->setFlag((!empty($instance->_id)) ? self::FLAG_CLEAN : self::FLAG_NEW);
-        $instance->saveState();
+        $id = $instance->getId();
+        $instance->setFlag((!empty($id)) ? self::FLAG_CLEAN : self::FLAG_NEW);
         return $instance;
-    }
-
-    /**
-     * Получить экземпляр сущности с соответствующим идентификатором
-     * @param string $id
-     * @return EntityInterface
-     */
-    public function withId(string $id): EntityInterface
-    {
-        if ($this->_id === $id) {
-            return $this;
-        }
-        $instance = clone ($this);
-        $instance->_id = $id;
-        $instance->setFlag(self::FLAG_CLEAN);
-        $instance->saveState();
-        return $instance;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getId()
-    {
-        return $this->_id;
     }
 
     /**
@@ -172,7 +111,12 @@ class Entity extends Subject implements EntityInterface
             return;
         }
         $this->_attributes[$name] = $value;
-        $this->setFlag(self::FLAG_DIRTY);
+        if ($this->getFlag() === self::FLAG_CLEAN) {
+            $this->setFlag(self::FLAG_DIRTY);
+        }
+        if ($this->getFlag() === self::FLAG_DIRTY) {
+            $this->_dirtyAttributes[$name] = $value;
+        }
     }
 
     /**
@@ -218,8 +162,23 @@ class Entity extends Subject implements EntityInterface
     }
 
     /**
-     * Получить структуру в виде массива
-     * @return array
+     * @inheritdoc
+     */
+    public function getAttributes(): array
+    {
+        return $this->_attributes;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getDirtyAttributes(): array
+    {
+        return $this->_dirtyAttributes;
+    }
+
+    /**
+     * @inheritdoc
      */
     public function toArray(): array
     {

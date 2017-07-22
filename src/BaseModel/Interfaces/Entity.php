@@ -4,30 +4,6 @@ namespace BaseModel\Interfaces;
 
 interface Entity extends Subject
 {
-
-    /**
-     * Флаг указывающий на то, что полученый экземпляр сущности пуст
-     */
-    const FLAG_EMPTY = 0x00;
-
-    /**
-     * Флаг указывающий на то, что полученый экземпляр сущности,
-     * данные которой получены из источника
-     */
-    const FLAG_CLEAN = 0x01;
-
-    /**
-     * Флаг указывающий на то, что полученый экземпляр сущности,
-     * данные которой отсутствуют в источнике
-     */
-    const FLAG_NEW = 0x02;
-
-    /**
-     * Флаг указывающий на то, что полученый экземпляр сущности,
-     * данные которой изменены и не соответствуют данным полученым из источника
-     */
-    const FLAG_DIRTY = 0x03;
-
     /**
      * Получить экземпляр сущности с соответствующими данными
      * @param array $data
@@ -36,25 +12,31 @@ interface Entity extends Subject
     public function withData(array $data): Entity;
 
     /**
-     * Получить экземпляр сущности с соответствующим идентификатором
-     * @param string $id
-     * @return Entity
+     * Получить снимок состояния сущности
+     * @return Memento
      */
-    public function withId(string $id): Entity;
+    public function createMemento(): Memento;
 
     /**
-     * Получить идентификатор сущности
-     * @return string
+     * Вернуть состояние сущности из снимка состояния
+     * @param Memento $memento
      */
-    public function getId();
+    public function setMemento(Memento $memento);
 
     /**
-     * Откат изменений
+     * Получить атрибуты в виде массива
+     * @return array
      */
-    public function rollBack();
+    public function getAttributes(): array;
 
     /**
-     * Получить структуру в виде массива
+     * Получить измененные атрибуты в виде массива
+     * @return array
+     */
+    public function getDirtyAttributes(): array;
+
+    /**
+     * Получить структуру сущности в виде массива
      * @return array
      */
     public function toArray(): array;

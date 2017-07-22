@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace BaseModel;
 
+
+use BaseModel\Interfaces\EntityManager as EntityManagerInterface;
 use BaseModel\Interfaces\Subject as SubjectInterface;
 use SplObserver;
 
@@ -11,24 +13,56 @@ class Subject extends Object implements SubjectInterface
 {
 
     /**
+     * Идентификатор субъекта
+     * @var string
+     */
+    private $_id;
+
+    /**
      * Массив наблюдателей за субъектом
      * @var \SplObjectStorage
      */
     private $_observers;
+
     /**
      * Флаг состояния объекта
      * @var int
      */
     private $_flag;
 
+    /**
+     * Ссылка на менеджер сущностей
+     * @var EntityManagerInterface
+     */
+    protected $entityManager;
+
     public function __construct()
     {
+        $this->entityManager = AbstractEntityManager::getEntityManager();
         $this->_observers = new \SplObjectStorage();
+        $this->setFlag(self::FLAG_EMPTY);
     }
 
     public function __clone()
     {
         $this->_observers = new \SplObjectStorage();
+    }
+
+    /**
+     * Получить экземпляр субъекта
+     * @param string $subjectClass
+     * @return SubjectInterface
+     * @throws Exception
+     */
+    public static function create(string $subjectClass): SubjectInterface
+    {
+        $subject = new $subjectClass();
+        if(!$subject instanceof SubjectInterface){
+            throw new Exception(
+                sprintf('Класс субъекта "%s" не реализует необходимый интерфейс', $subjectClass)
+            );
+        }
+        return $subject;
     }
 
     /**
@@ -51,6 +85,22 @@ class Subject extends Object implements SubjectInterface
     }
 
     /**
+     * @inheritdoc
+     */
+    public function setId(string $id)
+    {
+        $this->_id = $id;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getId()
+    {
+        return $this->_id;
+    }
+
+    /**
      * Установить свойство
      * При установке свойства должно происходить оповещение наблюдателей об изменении состояния
      * @param $name
@@ -59,7 +109,7 @@ class Subject extends Object implements SubjectInterface
     public function __set($name, $value)
     {
         parent::__set($name, $value);
-        $this->notify();
+        $this->setFlag(self::FLAG_DIRTY);
     }
 
     /**
@@ -70,7 +120,7 @@ class Subject extends Object implements SubjectInterface
     public function __unset($name)
     {
         parent::__unset($name);
-        $this->notify();
+        $this->setFlag(self::FLAG_DIRTY);
     }
 
     /**
@@ -79,7 +129,9 @@ class Subject extends Object implements SubjectInterface
      */
     public function attach(SplObserver $observer)
     {
-        $this->_observers->attach($observer);
+        if(!$this->_observers->contains($observer)){
+            $this->_observers->attach($observer);
+        }
     }
 
     /**
@@ -88,7 +140,9 @@ class Subject extends Object implements SubjectInterface
      */
     public function detach(SplObserver $observer)
     {
-        $this->_observers->detach($observer);
+        if($this->_observers->contains($observer)){
+            $this->_observers->detach($observer);
+        }
     }
 
     /**
